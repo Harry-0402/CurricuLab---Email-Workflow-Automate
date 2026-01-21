@@ -2,13 +2,10 @@
   "name": "curriculab-notifier",
   "version": "1.0.0",
   "description": "Automated notification agent for CurricuLab",
-  "main": "scripts/watcher.js",
+  "main": "scripts/check-updates.js",
   "scripts": {
-    "start": "node scripts/watcher.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start:bg": "pm2 start ecosystem.config.js",
-    "stop:bg": "pm2 stop curriculab-agent",
-    "logs:bg": "pm2 logs curriculab-agent"
+    "start": "node scripts/check-updates.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
