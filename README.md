@@ -1,79 +1,64 @@
-# CurricuLab Notification Agent
+# CurricuLab Automated Notification Agent
 
-A background agent that monitors CurricuLab for updates (assignments, announcements) and sends email notifications to authorized users.
+This system runs silently in the background to ensure all students and faculty stay up-to-date with the latest changes in the CurricuLab ecosystem. It is **fully automated**, requiring no manual server management.
 
-## Features
-- **Automated Monitoring**: Checks for new updates every 10 minutes.
-- **Smart Notifications**: Sends responsive HTML emails with branding.
-- **Background Execution**: Runs continuously using `pm2` locally or as a web service in the cloud.
-- **Health Check**: Includes a built-in HTTP server for uptime monitoring.
+---
 
-## Local Setup
+## 🏗️ How It Works
 
-1.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
+The system uses an **Event-Driven Architecture** to deliver notifications the moment something important happens.
 
-2.  **Configure Environment**
-    Create a `.env` file with the following variables:
-    ```env
-    SUPABASE_URL=your_supabase_url
-    SUPABASE_KEY=your_supabase_key
-    SMTP_HOST=smtp.gmail.com
-    SMTP_PORT=465
-    SMTP_USER=your_gmail_address
-    SMTP_PASS=your_gmail_app_password
-    ```
+```mermaid
+graph LR
+    User[Admin/Faculty] -- Adds/Updates Data --> Supabase[(Supabase Database)]
+    Supabase -- Webhook Ping --> GitHub[GitHub Actions]
+    GitHub -- Runs Scripts --> Email[Student Inboxes]
+```
 
-3.  **Run the Agent**
-    ```bash
-    # Run in foreground
-    node scripts/watcher.js
+1.  **Action**: You create an Assignment, Announcement, or Resource in your CurricuLab App.
+2.  **Trigger**: Supabase detects the change types (`INSERT`, `UPDATE`, `DELETE`) and instantly wakes up the Agent.
+3.  **Delivery**: The Agent formats a beautiful HTML email and sends it to all authorized users.
 
-    # Run in background (RECOMMENDED)
-    npm run start:bg
-    ```
+---
 
-## GitHub Actions (Serverless Automation)
+## 🎨 Visual Notification System
 
-This project includes a **GitHub Actions** workflow that runs automatically in the cloud.
+Emails are color-coded so recipients know exactly what kind of update it is at a glance:
 
-- **Check Updates**: Runs every 10 minutes.
-- **Attendance Reminders**: Runs daily at 7:00 PM and 9:00 PM IST.
+| Color | Action | Example |
+| :--- | :--- | :--- |
+| 🔵 **Blue** | **New Item** | "✨ New Assignment: Physics 101" |
+| 🟠 **Orange** | **Update** | "🔄 Updated Announcement: Exam Schedule" |
+| 🔴 **Red** | **Deletion** | "🗑️ Removed Resource: Old Syllabus" |
+| 🟣 **Purple**| **Reminder** | "📅 Action Required: Daily Attendance" |
 
-### Setup Instructions
+---
 
-1.  Push your code to a GitHub repository.
-2.  Go to **Settings** > **Secrets and variables** > **Actions**.
-3.  Click **New repository secret**.
-4.  Add the following secrets (values from your `.env` file):
-    - `SUPABASE_URL`
-    - `SUPABASE_KEY`
-    - `SMTP_USER`
-    - `SMTP_PASS`
-    - `SMTP_HOST` (e.g., `smtp.gmail.com`)
-    - `SMTP_PORT` (e.g., `465`)
+## 🚀 How to Use
 
-Once these are set, the workflow defined in `.github/workflows/schedule.yml` will start running automatically!
+### For Administrators
+Just use the **CurricuLab Dashboard** as you normally would.
+*   **Create** an empty Assignment? → Students get a **Blue** email.
+*   **Fix** a typo in an Announcement? → Students get an **Orange** email with the correction.
+*   **Delete** a file? → Students get a **Red** notification.
 
-## Cloud Deployment (Alternative)
+### Daily Automations
+The system also performs scheduled health checks and reminders independent of new data:
+*   **7:00 PM & 9:00 PM**: Attendance Reminders are sent to all users who haven't logged their daily progress.
+*   **Every 5 Minutes**: A safety checker runs to ensure no updates were missed during network hiccups.
 
-1.  **Connect Repository**: Link this GitHub repo to your cloud provider.
-2.  **Build Command**: `npm install`
-3.  **Start Command**: `node scripts/watcher.js` (or `npm start`)
-4.  **Environment Variables**:
-    Add these in your dashboard settings:
-    - `SUPABASE_URL`
-    - `SUPABASE_KEY`
-    - `SMTP_USER`
-    - `SMTP_PASS`
-    - `SMTP_HOST` (default: `smtp.gmail.com`)
-    - `SMTP_PORT` (default: `465`)
+---
 
-> **Note on SMTP**: Render blocks port 25 but allows ports 587 and 465. We use port 465 (SSL) by default, so email sending works without issues.
+## 🛠️ One-Time Setup
 
-## Management
+If you are setting this up for the first time, you need to connect your Database to your GitHub Repository.
 
-- **Logs**: `npm run logs:bg`
-- **Stop**: `npm run stop:bg`
+👉 **[Read the Webhook Setup Guide](SUPABASE_WEBHOOK.md)**
+
+---
+
+## 📂 Repository Structure
+
+*   `src/`: Core logic for fetching data and generating email HTML.
+*   `scripts/`: One-off scripts ran by GitHub Actions (`check-updates.js`, `send-reminder.js`).
+*   `.github/workflows/`: Configuration for the automation schedules.
