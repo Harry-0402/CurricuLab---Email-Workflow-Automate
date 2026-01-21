@@ -1,0 +1,21 @@
+{
+  "name": "curriculab-notifier",
+  "version": "1.0.0",
+  "description": "Automated notification agent for CurricuLab",
+  "main": "scripts/watcher.js",
+  "scripts": {
+    "start": "node scripts/watcher.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:bg": "pm2 start ecosystem.config.js",
+    "stop:bg": "pm2 stop curriculab-agent",
+    "logs:bg": "pm2 logs curriculab-agent"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.12",
+    "pm2": "^6.0.14"
+  }
+}
