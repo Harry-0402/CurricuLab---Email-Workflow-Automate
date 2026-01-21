@@ -26,18 +26,39 @@ function processChange(change) {
         switch (entity_type) {
             case 'Announcement':
                 notification.title = `${actionEmoji} ${actionPrefix} Announcement: ${payload.title || 'No Title'}`;
-                notification.description = payload.message || payload.description || 'Check the dashboard for details.';
+                if (action === 'DELETE') {
+                    notification.description = 'This announcement has been retracted/removed.';
+                } else if (action === 'UPDATE') {
+                    notification.description = `(Edited) ${payload.message || payload.description || 'The announcement has been updated.'}`;
+                } else {
+                    notification.description = payload.message || payload.description || 'Check the dashboard for details.';
+                }
                 break;
 
             case 'Assignment':
                 notification.title = `${actionEmoji} ${actionPrefix} Assignment: ${payload.title || 'Unknown Assignment'}`;
-                notification.description = `Project/Subject: ${payload.subjectId || 'General'}`;
+                let subjectInfo = `Project/Subject: ${payload.subjectId || 'General'}`;
+
+                if (action === 'DELETE') {
+                    notification.description = `${subjectInfo}\n\n⚠️ This assignment has been removed from the coursework.`;
+                } else if (action === 'UPDATE') {
+                    notification.description = `${subjectInfo}\n\n🔄 Updates have been made to this assignment. Please check the dashboard for new instructions or due dates.`;
+                } else {
+                    notification.description = `${subjectInfo}\n\n✨ A new assignment has been posted.`;
+                }
                 break;
 
             case 'Vault Resource':
                 const resourceType = payload.type === 'study_note' ? 'Study Note' : 'Resource';
                 notification.title = `${actionEmoji} ${actionPrefix} ${resourceType}: ${payload.title || 'Untitled'}`;
-                notification.description = 'A resource has been modified in the Vault.';
+
+                if (action === 'DELETE') {
+                    notification.description = `The ${resourceType.toLowerCase()} "${payload.title}" has been deleted from the Vault.`;
+                } else if (action === 'UPDATE') {
+                    notification.description = `The ${resourceType.toLowerCase()} has been updated.`;
+                } else {
+                    notification.description = `New ${resourceType.toLowerCase()} uploaded to the Vault.`;
+                }
                 break;
 
             default:
