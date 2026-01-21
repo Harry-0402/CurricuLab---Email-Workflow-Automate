@@ -3,12 +3,31 @@
  * @param {Object} notification - The notification object.
  * @param {string} notification.title - The title of the notification.
  * @param {string} notification.type - The type of notification (e.g., Assignment, Announcement).
+ * @param {string} notification.action - The action type (INSERT, UPDATE, DELETE, REMINDER).
  * @param {string} notification.description - The body of the notification.
  * @param {string|Date} notification.timestamp - The timestamp of the event.
  * @returns {string} The complete HTML string.
  */
 function generateEmailHtml(notification) {
-    const primaryColor = '#2563eb'; // Blue-600
+    // Define Color Themes
+    const themes = {
+        'INSERT': { color: '#2563eb', name: 'New' },       // Blue
+        'UPDATE': { color: '#d97706', name: 'Updated' },   // Orange
+        'DELETE': { color: '#dc2626', name: 'Removed' },   // Red
+        'REMINDER': { color: '#7c3aed', name: 'Reminder' } // Purple
+    };
+
+    // Default to 'INSERT' (Blue) if unknown
+    const action = notification.action ? notification.action.toUpperCase() : 'INSERT';
+    const theme = themes[action] || themes['INSERT'];
+
+    // Override color logic for specific Reminder type if passed as action 'Reminder'
+    if (notification.type === 'Reminder') {
+        theme.color = '#7c3aed';
+        theme.name = 'Action Required';
+    }
+
+    const primaryColor = theme.color;
     const backgroundColor = '#f8fafc'; // Slate-50
     const cardColor = '#ffffff';
     const textColor = '#1e293b'; // Slate-800
@@ -38,7 +57,7 @@ function generateEmailHtml(notification) {
         .header { background-color: ${primaryColor}; padding: 24px; text-align: center; }
         .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
         .content { padding: 32px 24px; }
-        .badge { display: inline-block; background-color: #e0f2fe; color: ${primaryColor}; padding: 6px 12px; border-radius: 9999px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+        .badge { display: inline-block; background-color: ${primaryColor}20; color: ${primaryColor}; padding: 6px 12px; border-radius: 9999px; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; border: 1px solid ${primaryColor}40; }
         .title { color: ${textColor}; margin: 0 0 16px 0; font-size: 20px; font-weight: 700; line-height: 1.4; }
         .meta { color: ${mutedColor}; font-size: 14px; margin-bottom: 24px; border-bottom: 1px solid ${borderColor}; padding-bottom: 24px; }
         .description { color: ${textColor}; font-size: 16px; line-height: 1.6; margin: 0; white-space: pre-wrap; }
@@ -54,7 +73,7 @@ function generateEmailHtml(notification) {
                 <h1>CurricuLab</h1>
             </div>
             <div class="content">
-                <span class="badge">${notification.type}</span>
+                <span class="badge">${theme.name} • ${notification.type}</span>
                 <h2 class="title">${notification.title}</h2>
                 <div class="meta">
                     📅 ${dateStr}
