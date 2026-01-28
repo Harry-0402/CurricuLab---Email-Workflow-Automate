@@ -61,6 +61,18 @@ function processChange(change) {
                 }
                 break;
 
+            case 'Revision Note':
+                notification.title = `${actionEmoji} ${actionPrefix} Revision Note: ${payload.title || 'Untitled'}`;
+
+                if (action === 'DELETE') {
+                    notification.description = `The revision note "${payload.title}" has been removed.`;
+                } else if (action === 'UPDATE') {
+                    notification.description = `The revision note "${payload.title}" has been updated.`;
+                } else {
+                    notification.description = `New revision note available: "${payload.title || 'Untitled'}". Check the dashboard to review properly.`;
+                }
+                break;
+
             default:
                 notification.title = `${actionEmoji} ${actionPrefix} ${entity_type}`;
         }

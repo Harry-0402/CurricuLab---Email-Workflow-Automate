@@ -30,7 +30,7 @@ async function fetchNewChanges() {
         .from('change_logs')
         .select('*')
         .gt('timestamp', lastChecked)
-        .in('entity_type', ['Announcement', 'Assignment', 'Vault Resource'])
+        .in('entity_type', ['Announcement', 'Assignment', 'Vault Resource', 'Revision Note'])
         .order('timestamp', { ascending: true });
 
     if (error) {
