@@ -38,7 +38,7 @@ jobs:
     
     - name: Run Update Checker
       # Always run the update checker logic
-      if: github.event.schedule == '*/10 * * * *' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
+      if: github.event.schedule == '*/5 * * * *' || github.event_name == 'workflow_dispatch' || github.event_name == 'repository_dispatch'
       run: node scripts/check-updates.js
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
