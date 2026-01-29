@@ -1,29 +1,53 @@
 const supabase = require('./db');
-const fs = require('fs');
-const path = require('path');
 
-const STATE_FILE = path.join(__dirname, '../data/state.json');
+// Key used to store the bot's state in the app_data table
+const STATE_KEY = 'email_bot_state';
 
-// Ensure data directory exists
-if (!fs.existsSync(path.dirname(STATE_FILE))) {
-    fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-}
+async function getLastChecked() {
+    try {
+        const { data, error } = await supabase
+            .from('app_data')
+            .select('data')
+            .eq('key', STATE_KEY)
+            .single();
 
-function getLastChecked() {
-    if (fs.existsSync(STATE_FILE)) {
-        const data = JSON.parse(fs.readFileSync(STATE_FILE, 'utf8'));
-        return data.last_checked;
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+            console.error('Error fetching state from DB:', error.message);
+        }
+
+        if (data && data.data && data.data.last_checked) {
+            return data.data.last_checked;
+        }
+    } catch (err) {
+        console.error('Unexpected error fetching state:', err);
     }
-    // Default to 24 hours ago if no state exists
+
+    // Default to 24 hours ago if no state exists or error occurs
+    console.log('No previous state found in DB, defaulting to 24 hours ago.');
     return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 }
 
-function updateLastChecked(timestamp) {
-    fs.writeFileSync(STATE_FILE, JSON.stringify({ last_checked: timestamp }, null, 2));
+async function updateLastChecked(timestamp) {
+    try {
+        const { error } = await supabase
+            .from('app_data')
+            .upsert({
+                key: STATE_KEY,
+                data: { last_checked: timestamp }
+            }, { onConflict: 'key' });
+
+        if (error) {
+            console.error('Error updating state in DB:', error.message);
+        } else {
+            console.log(`State updated in DB: ${timestamp}`);
+        }
+    } catch (err) {
+        console.error('Unexpected error updating state:', err);
+    }
 }
 
 async function fetchNewChanges() {
-    const lastChecked = getLastChecked();
+    const lastChecked = await getLastChecked();
     console.log(`Checking for changes since: ${lastChecked}`);
 
     const { data, error } = await supabase
@@ -41,7 +65,7 @@ async function fetchNewChanges() {
     if (data.length > 0) {
         // Update state to the timestamp of the last item found
         const newestTimestamp = data[data.length - 1].timestamp;
-        updateLastChecked(newestTimestamp);
+        await updateLastChecked(newestTimestamp);
     }
 
     return data;
